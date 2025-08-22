@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>API Test</title>
+  </head>
+  <body>
+    <h1>API Test</h1>
+    <button onclick="testApi()">Test API</button>
+    <div id="results"></div>
+
+    <script>
+      async function testApi() {
+        console.log("🧪 Testing API Call Directly");
+        const results = document.getElementById("results");
+        results.innerHTML = "<p>Testing...</p>";
+
+        // Test 1: Direct API call
+        const apiUrl =
+          "http://localhost:8081/api/v1/products?status=active&isVisible=true&limit=3";
+        console.log("🔗 API URL:", apiUrl);
+
+        try {
+          console.log("📞 Making API call...");
+          const response = await fetch(apiUrl);
+
+          console.log("✅ Response status:", response.status);
+          console.log("✅ Response ok:", response.ok);
+          console.log("✅ Response headers:", response.headers);
+
+          const data = await response.json();
+          console.log("✅ Response data:", data);
+          console.log("✅ Success:", data.success);
+          console.log("✅ Data length:", data.data?.length || 0);
+          console.log("✅ First product:", data.data?.[0]?.name || "No name");
+
+          results.innerHTML = `
+                    <h3>API Test Results:</h3>
+                    <p><strong>Status:</strong> ${response.status}</p>
+                    <p><strong>OK:</strong> ${response.ok}</p>
+                    <p><strong>Success:</strong> ${data.success}</p>
+                    <p><strong>Data Length:</strong> ${
+                      data.data?.length || 0
+                    }</p>
+                    <p><strong>First Product:</strong> ${
+                      data.data?.[0]?.name || "No name"
+                    }</p>
+                    <h4>Full Response:</h4>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                `;
+        } catch (error) {
+          console.error("❌ API Error:", error);
+          results.innerHTML = `
+                    <h3>API Test Error:</h3>
+                    <p style="color: red;"><strong>Error:</strong> ${
+                      error.message
+                    }</p>
+                    <p><strong>Error Details:</strong> ${error.toString()}</p>
+                `;
+        }
+      }
+
+      // Test on page load
+      window.onload = function () {
+        console.log("🚀 Page loaded, ready to test API");
+        // Auto-test after 2 seconds
+        setTimeout(testApi, 2000);
+      };
+    </script>
+  </body>
+</html>

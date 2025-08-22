@@ -1,0 +1,75 @@
+{
+  "home": {
+    "welcome": "Chào mừng",
+    "hero_title": "Cửa hàng trực tuyến của chúng tôi",
+    "hero_subtitle": "Sản phẩm chất lượng cho bạn",
+    "featured_products": "Sản phẩm nổi bật",
+    "latest_products": "Sản phẩm mới",
+    "trending": "Xu hướng",
+    "view_all": "Xem tất cả"
+  },
+
+  "site": {
+    "cta_explore": "Khám phá bộ sưu tập",
+    "experience_title": "Trải Nghiệm LALA-LYCHEE",
+    "featured_section": "Sản Phẩm Nổi Bật",
+    "collections_section": "Bộ Sưu Tập Đặc Biệt",
+    "craft_section": "Quy Trình Sáng Tạo",
+    "social_section": "Sự Tin Tưởng Từ Cộng Đồng",
+    "about_title": "Câu Chuyện LALA-LYCHEE"
+  },
+
+  "nav": {
+    "home": "Trang Chủ",
+    "products": "Sản Phẩm",
+    "all_products": "Tất Cả Sản Phẩm",
+    "honey": "Mật Ong",
+    "lychee_products": "Sản phẩm Vải",
+    "story": "Câu Chuyện",
+    "functions": "Chức Năng",
+    "payment": "Thanh Toán",
+    "login": "Đăng Nhập",
+    "register": "Đăng Ký",
+    "admin": "Quản Trị",
+    "account": "Tài khoản",
+    "profile": "Trang cá nhân",
+    "logout": "Đăng xuất",
+    "cart": "Giỏ hàng",
+    "language": "Ngôn ngữ",
+    "menu": "Menu"
+  },
+
+  "auth": {
+    "login_title": "Đăng nhập",
+    "login_subtitle": "để tiếp tục đến tài khoản của bạn",
+    "email": "Email",
+    "password": "Mật khẩu",
+    "remember_me": "Ghi nhớ đăng nhập",
+    "forgot_password": "Quên mật khẩu?",
+    "login_button": "Đăng nhập",
+    "login_with_google": "Đăng nhập với Google",
+    "no_account": "Chưa có tài khoản?",
+    "register_now": "Đăng ký ngay",
+    "logging_in": "Đang đăng nhập...",
+    "login_success": "Đăng nhập thành công!",
+    "login_failed": "Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.",
+    "or_continue_with": "Hoặc tiếp tục với"
+  },
+
+  "common": {
+    "loading": "Đang tải...",
+    "error": "Lỗi",
+    "success": "Thành công",
+    "cancel": "Hủy",
+    "confirm": "Xác nhận",
+    "save": "Lưu",
+    "edit": "Chỉnh sửa",
+    "delete": "Xóa",
+    "search": "Tìm kiếm",
+    "filter": "Lọc",
+    "sort": "Sắp xếp",
+    "price": "Giá",
+    "quantity": "Số lượng",
+    "total": "Tổng cộng"
+  }
+}

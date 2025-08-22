@@ -1,0 +1,75 @@
+{
+  "home": {
+    "welcome": "Welcome",
+    "hero_title": "Our online store",
+    "hero_subtitle": "Quality products for you",
+    "featured_products": "Featured Products",
+    "latest_products": "Latest Products",
+    "trending": "Trending",
+    "view_all": "View all"
+  },
+
+  "site": {
+    "cta_explore": "Explore the collection",
+    "experience_title": "LALA-LYCHEE Experience",
+    "featured_section": "Featured Products",
+    "collections_section": "Special Collections",
+    "craft_section": "Our Craft Process",
+    "social_section": "Trusted by the Community",
+    "about_title": "The LALA-LYCHEE Story"
+  },
+
+  "nav": {
+    "home": "Home",
+    "products": "Products",
+    "all_products": "All Products",
+    "honey": "Honey",
+    "lychee_products": "Lychee Products",
+    "story": "Story",
+    "functions": "Functions",
+    "payment": "Payment",
+    "login": "Login",
+    "register": "Register",
+    "admin": "Admin",
+    "account": "Account",
+    "profile": "Profile",
+    "logout": "Logout",
+    "cart": "Cart",
+    "language": "Language",
+    "menu": "Menu"
+  },
+
+  "auth": {
+    "login_title": "Sign in",
+    "login_subtitle": "to continue to your account",
+    "email": "Email",
+    "password": "Password",
+    "remember_me": "Remember me",
+    "forgot_password": "Forgot password?",
+    "login_button": "Sign in",
+    "login_with_google": "Sign in with Google",
+    "no_account": "Don't have an account?",
+    "register_now": "Sign up now",
+    "logging_in": "Signing in...",
+    "login_success": "Login successful!",
+    "login_failed": "Login failed. Please check your credentials.",
+    "or_continue_with": "Or continue with"
+  },
+
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "save": "Save",
+    "edit": "Edit",
+    "delete": "Delete",
+    "search": "Search",
+    "filter": "Filter",
+    "sort": "Sort",
+    "price": "Price",
+    "quantity": "Quantity",
+    "total": "Total"
+  }
+}

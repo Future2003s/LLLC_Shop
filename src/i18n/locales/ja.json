@@ -1,0 +1,75 @@
+{
+  "home": {
+    "welcome": "ようこそ",
+    "hero_title": "私たちのオンラインストア",
+    "hero_subtitle": "あなたのための高品質な製品",
+    "featured_products": "注目の製品",
+    "latest_products": "最新製品",
+    "trending": "トレンド",
+    "view_all": "すべて表示"
+  },
+
+  "site": {
+    "cta_explore": "コレクションを見る",
+    "experience_title": "LALA-LYCHEEの体験",
+    "featured_section": "注目の製品",
+    "collections_section": "特別コレクション",
+    "craft_section": "私たちの作り方",
+    "social_section": "コミュニティからの信頼",
+    "about_title": "LALA-LYCHEEの物語"
+  },
+
+  "nav": {
+    "home": "ホーム",
+    "products": "製品",
+    "all_products": "すべての製品",
+    "honey": "ハチミツ",
+    "lychee_products": "ライチ製品",
+    "story": "ストーリー",
+    "functions": "機能",
+    "payment": "支払い",
+    "login": "ログイン",
+    "register": "登録",
+    "admin": "管理",
+    "account": "アカウント",
+    "profile": "プロフィール",
+    "logout": "ログアウト",
+    "cart": "カート",
+    "language": "言語",
+    "menu": "メニュー"
+  },
+
+  "auth": {
+    "login_title": "ログイン",
+    "login_subtitle": "アカウントに続行するには",
+    "email": "メール",
+    "password": "パスワード",
+    "remember_me": "ログイン状態を保持",
+    "forgot_password": "パスワードを忘れた？",
+    "login_button": "ログイン",
+    "login_with_google": "Googleでログイン",
+    "no_account": "アカウントをお持ちでない？",
+    "register_now": "今すぐ登録",
+    "logging_in": "ログイン中...",
+    "login_success": "ログイン成功！",
+    "login_failed": "ログインに失敗しました。認証情報を確認してください。",
+    "or_continue_with": "または続行する"
+  },
+
+  "common": {
+    "loading": "読み込み中...",
+    "error": "エラー",
+    "success": "成功",
+    "cancel": "キャンセル",
+    "confirm": "確認",
+    "save": "保存",
+    "edit": "編集",
+    "delete": "削除",
+    "search": "検索",
+    "filter": "フィルター",
+    "sort": "並び替え",
+    "price": "価格",
+    "quantity": "数量",
+    "total": "合計"
+  }
+}
