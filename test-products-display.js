@@ -4,7 +4,7 @@ console.log("🧪 Testing Products Display");
 // Test 1: Kiểm tra API response
 console.log("1. Testing API Response...");
 fetch(
-  "http://localhost:8081/api/v1/products?status=active&isVisible=true&limit=3"
+  "https://api.lalalycheee.vn/api/v1/products?status=active&isVisible=true&limit=3"
 )
   .then((response) => response.json())
   .then((data) => {

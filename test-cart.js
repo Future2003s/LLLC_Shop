@@ -26,7 +26,7 @@ try {
 console.log("\n2. Testing API Endpoints...");
 
 // Test backend health
-fetch("http://localhost:8081/api/v1/health")
+fetch("https://api.lalalycheee.vn/api/v1/health")
   .then((response) => response.json())
   .then((data) => {
     console.log("✅ Backend health:", data.status);
@@ -36,7 +36,7 @@ fetch("http://localhost:8081/api/v1/health")
   });
 
 // Test products API
-fetch("http://localhost:8081/api/v1/products?limit=1")
+fetch("https://api.lalalycheee.vn/api/v1/products?limit=1")
   .then((response) => response.json())
   .then((data) => {
     if (data.success && data.data && data.data.length > 0) {
@@ -63,5 +63,5 @@ console.log("5. Verify item appears in cart");
 
 console.log("\n🔍 Debug Info:");
 console.log("- Frontend: http://localhost:3001");
-console.log("- Backend: http://localhost:8081");
+console.log("- Backend: https://api.lalalycheee.vn");
 console.log("- Cart page: http://localhost:3001/vi/cart");

@@ -11,7 +11,7 @@ export async function GET() {
     }
 
     const baseUrl =
-      process.env.NEXT_PUBLIC_API_END_POINT || "http://localhost:8081/api/v1";
+      process.env.NEXT_PUBLIC_API_END_POINT || "https://api.lalalycheee.vn/api/v1";
     const res = await fetch(`${baseUrl}/auth/me`, {
       method: "GET",
       headers: { Authorization: `Bearer ${token}` },

@@ -72,7 +72,7 @@ async function testBackendDirect() {
 
   try {
     const response = await fetch(
-      `http://localhost:8081/api/v1/products/${productId}`,
+      `https://api.lalalycheee.vn/api/v1/products/${productId}`,
       {
         method: "PUT",
         headers: {

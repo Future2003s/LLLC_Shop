@@ -12,7 +12,7 @@ export default function TestApiPage() {
     console.log("🧪 Testing Direct Fetch");
     try {
       const response = await fetch(
-        "http://localhost:8081/api/v1/products?limit=3"
+        "https://api.lalalycheee.vn/api/v1/products?limit=3"
       );
       const data = await response.json();
       console.log("Direct fetch result:", data);

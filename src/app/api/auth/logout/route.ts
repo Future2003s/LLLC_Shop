@@ -7,7 +7,8 @@ export async function POST() {
   try {
     if (token) {
       const baseUrl =
-        process.env.NEXT_PUBLIC_API_END_POINT || "http://localhost:8081/api/v1";
+        process.env.NEXT_PUBLIC_API_END_POINT ||
+        "https://api.lalalycheee.vn/api/v1";
       await fetch(`${baseUrl}/auth/logout`, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },

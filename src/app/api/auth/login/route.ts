@@ -20,7 +20,8 @@ export async function POST(request: NextRequest) {
 
     // Resolve backend base URL with safe fallback
     const baseUrl =
-      process.env.NEXT_PUBLIC_API_END_POINT || "http://localhost:8081/api/v1";
+      process.env.NEXT_PUBLIC_API_END_POINT ||
+      "https://api.lalalycheee.vn/api/v1";
 
     // Forward to backend
     const res = await fetch(`${baseUrl}/auth/login`, {

@@ -4,7 +4,7 @@ console.log("🧪 Testing API Call Directly");
 // Test 1: Kiểm tra API endpoint
 console.log("1. Testing API Endpoint...");
 const apiUrl =
-  "http://localhost:8081/api/v1/products?status=active&isVisible=true&limit=3";
+  "https://api.lalalycheee.vn/api/v1/products?status=active&isVisible=true&limit=3";
 console.log("🔗 API URL:", apiUrl);
 
 // Test 2: Kiểm tra fetch

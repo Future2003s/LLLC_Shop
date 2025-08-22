@@ -22,13 +22,16 @@ function Page() {
 
   const categoryMutation = useMutation({
     mutationFn: async (data: CategoryRequestType) => {
-      const res = await fetch("http://localhost:8081/v1/api/create-category", {
-        headers: {
-          "Content-Type": "application/json",
-        },
-        method: "POST",
-        body: JSON.stringify(data),
-      });
+      const res = await fetch(
+        "https://api.lalalycheee.vn/v1/api/create-category",
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+          method: "POST",
+          body: JSON.stringify(data),
+        }
+      );
 
       if (!res.ok) {
         console.log("LỖI THÊM CATEGORY");

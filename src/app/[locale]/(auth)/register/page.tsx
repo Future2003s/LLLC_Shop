@@ -64,7 +64,7 @@ const SignUpPage = (): React.JSX.Element => {
 
   const registerMutation = useMutation({
     mutationFn: async (data: RegisterRequestBackendType) => {
-      const res = await fetch("http://localhost:8081/api/v1/auth/register", {
+      const res = await fetch("https://api.lalalycheee.vn/api/v1/auth/register", {
         headers: {
           "Content-Type": "application/json; charset=utf-8",
         },

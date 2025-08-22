@@ -43,7 +43,8 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  const base = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8081";
+  const base =
+    process.env.NEXT_PUBLIC_BACKEND_URL || "https://api.lalalycheee.vn";
   const template = process.env.API_CART_ADD_URL_TEMPLATE; // e.g., /cart/items
   const candidates = buildCandidates(template, [
     "/api/v1/cart/items",

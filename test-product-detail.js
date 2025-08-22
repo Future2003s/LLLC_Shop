@@ -8,7 +8,7 @@ async function testProductDetail() {
     // Get a product ID from the list
     console.log("1. Getting product list...");
     const listResponse = await axios.get(
-      "http://localhost:8081/api/v1/products?status=active&limit=1"
+      "https://api.lalalycheee.vn/api/v1/products?status=active&limit=1"
     );
 
     if (listResponse.data.data.length === 0) {
@@ -24,7 +24,7 @@ async function testProductDetail() {
     // Test product detail API
     console.log("\n2. Testing product detail API...");
     const detailResponse = await axios.get(
-      `http://localhost:8081/api/v1/products/${productId}`
+      `https://api.lalalycheee.vn/api/v1/products/${productId}`
     );
 
     console.log(`✅ Status: ${detailResponse.status}`);

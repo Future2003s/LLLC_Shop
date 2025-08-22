@@ -6,7 +6,7 @@ const rl = readline.createInterface({
 });
 
 const BASE_URL = "http://localhost:3000";
-const BACKEND_URL = "http://localhost:8081";
+const BACKEND_URL = "https://api.lalalycheee.vn";
 
 async function testProductUpdate() {
   console.log("🧪 Test Product Update API\n");
