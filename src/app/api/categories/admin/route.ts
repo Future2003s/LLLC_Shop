@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server";
 import { envConfig } from "@/config";
+import { cookies } from "next/headers";
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
@@ -23,11 +24,16 @@ export async function GET(request: NextRequest) {
   console.log("Admin categories API called, backend URL:", backendUrl);
 
   try {
+    const cookieStore = await cookies();
+    const token = cookieStore.get("sessionToken")?.value || "";
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
+    if (token) headers.Authorization = `Bearer ${token}`;
+
     const res = await fetch(backendUrl, {
       cache: "no-store",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers,
     });
 
     if (!res.ok) {
@@ -78,26 +84,34 @@ export async function POST(request: NextRequest) {
 
     const backendUrl = `${envConfig.NEXT_PUBLIC_BACKEND_URL}/api/${envConfig.NEXT_PUBLIC_API_VERSION}/categories`;
 
+    const cookieStore = await cookies();
+    const token = cookieStore.get("sessionToken")?.value || "";
+
     console.log("Create category API called, backend URL:", backendUrl);
+
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
+    if (token) headers.Authorization = `Bearer ${token}`;
 
     const res = await fetch(backendUrl, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers,
       body: JSON.stringify(body),
     });
 
+    const contentType = res.headers.get("content-type") || "application/json";
+    const text = await res.text();
+
     if (!res.ok) {
       console.error("Create category API error - status:", res.status);
-      const errorText = await res.text();
-      console.error("Error response:", errorText);
+      console.error("Error response:", text);
 
       return new Response(
         JSON.stringify({
           success: false,
           message: "Failed to create category",
-          error: errorText,
+          error: text,
         }),
         {
           status: res.status,
@@ -106,7 +120,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const data = await res.json();
+    const data =
+      contentType.includes("application/json") && text
+        ? JSON.parse(text)
+        : { data: text };
+
     console.log("Create category API response:", data);
 
     return new Response(JSON.stringify(data), {

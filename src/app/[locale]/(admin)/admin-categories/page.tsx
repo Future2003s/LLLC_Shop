@@ -126,16 +126,21 @@ export default function AdminCategoriesPage() {
         return;
       }
 
-      const categoryData = {
-        ...formData,
+      // Build payload without sending empty optional fields
+      const categoryData: Record<string, any> = {
         name: formData.name.trim(),
-        description: formData.description.trim(),
-        metaTitle: formData.metaTitle.trim() || formData.name.trim(),
-        metaDescription:
-          formData.metaDescription.trim() || formData.description.trim(),
-        metaKeywords: formData.metaKeywords.trim(),
-        parentId: formData.parentId || undefined,
+        isActive: formData.isActive,
+        sortOrder: formData.sortOrder,
       };
+      if (formData.description.trim())
+        categoryData.description = formData.description.trim();
+      if (formData.metaTitle.trim())
+        categoryData.metaTitle = formData.metaTitle.trim();
+      if (formData.metaDescription.trim())
+        categoryData.metaDescription = formData.metaDescription.trim();
+      if (formData.metaKeywords.trim())
+        categoryData.metaKeywords = formData.metaKeywords.trim();
+      if (formData.parentId) categoryData.parentId = formData.parentId;
 
       console.log("Creating category:", categoryData);
 
@@ -183,16 +188,21 @@ export default function AdminCategoriesPage() {
         return;
       }
 
-      const categoryData = {
-        ...formData,
+      // Build payload without sending empty optional fields
+      const categoryData: Record<string, any> = {
         name: formData.name.trim(),
-        description: formData.description.trim(),
-        metaTitle: formData.metaTitle.trim() || formData.name.trim(),
-        metaDescription:
-          formData.metaDescription.trim() || formData.description.trim(),
-        metaKeywords: formData.metaKeywords.trim(),
-        parentId: formData.parentId || undefined,
+        isActive: formData.isActive,
+        sortOrder: formData.sortOrder,
       };
+      if (formData.description.trim())
+        categoryData.description = formData.description.trim();
+      if (formData.metaTitle.trim())
+        categoryData.metaTitle = formData.metaTitle.trim();
+      if (formData.metaDescription.trim())
+        categoryData.metaDescription = formData.metaDescription.trim();
+      if (formData.metaKeywords.trim())
+        categoryData.metaKeywords = formData.metaKeywords.trim();
+      if (formData.parentId) categoryData.parentId = formData.parentId;
 
       console.log("Updating category:", editing.id, categoryData);
 
@@ -303,7 +313,7 @@ export default function AdminCategoriesPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 pt-25">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-8">
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-gray-900 mb-4">
             Quản lý Danh mục

@@ -966,8 +966,12 @@ const CardStackSection: React.FC = () => {
   const [exitDirection, setExitDirection] = useState<"left" | "right" | null>(
     null
   );
+  const [lastAction, setLastAction] = useState<string | null>(null);
 
   const handleSwipe = (direction: "left" | "right") => {
+    setLastAction(
+      direction === "right" ? "Đã thêm vào yêu thích" : "Đã bỏ qua"
+    );
     setExitDirection(direction);
     setTimeout(() => {
       setCards((prev) => {
@@ -1006,9 +1010,17 @@ const CardStackSection: React.FC = () => {
 
   const topCardStyle = () => {
     if (exitDirection === "left")
-      return { transform: "translateX(-150%) rotate(-20deg)", opacity: 0 };
+      return {
+        transform: "translateX(-120%) rotate(-18deg)",
+        opacity: 0,
+        willChange: "transform",
+      };
     if (exitDirection === "right")
-      return { transform: "translateX(150%) rotate(20deg)", opacity: 0 };
+      return {
+        transform: "translateX(120%) rotate(18deg)",
+        opacity: 0,
+        willChange: "transform",
+      };
 
     if (dragInfo.isDragging) {
       const deltaX = dragInfo.currentX - dragInfo.startX;
@@ -1021,22 +1033,52 @@ const CardStackSection: React.FC = () => {
     return {};
   };
 
+  const displayedCards = cards.slice(0, 3).reverse();
+
+  // Derived values for visual feedback during drag
+  const deltaX = dragInfo.isDragging ? dragInfo.currentX - dragInfo.startX : 0;
+  const likeOpacity = Math.min(1, Math.max(0, deltaX / 140));
+  const nopeOpacity = Math.min(1, Math.max(0, -deltaX / 140));
+
   return (
-    <section id="card-stack" className="py-24 bg-rose-50/50">
+    <section id="card-stack" className="py-24 bg-rose-50/50 overflow-x-hidden">
+      <style jsx>{`
+        .card-shadow {
+          box-shadow: 0 20px 60px -20px rgba(2, 6, 23, 0.35);
+        }
+        .ring-focus:focus-visible {
+          outline: none;
+          box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.45);
+        }
+        .swipe-badge {
+          letter-spacing: 0.02em;
+        }
+      `}</style>
       <FadeInWhenVisible>
         <div className="container mx-auto px-6">
           <div className="text-center mb-16">
             <h2 className="font-serif text-3xl md:text-4xl font-bold text-slate-800">
               Khám Phá Bộ Sưu Tập
             </h2>
-            <p className="mt-3 text-lg text-slate-500 max-w-2xl mx-auto">
-              Vuốt hoặc bấm nút để khám phá những hình ảnh đẹp nhất từ chúng
-              tôi.
+            <p className="mt-3 text-lg text-slate-600 max-w-3xl mx-auto">
+              Trượt nhẹ trên điện thoại hoặc dùng các nút bên dưới để khám phá
+              những khung hình nổi bật nhất từ LALA‑LYCHEE.
+            </p>
+            <p className="mt-2 text-sm text-slate-400 max-w-2xl mx-auto hidden sm:block">
+              Mẹo: Kéo sang trái để bỏ qua, kéo sang phải để thêm vào mục yêu
+              thích.
             </p>
           </div>
 
           <div
-            className="relative w-full max-w-sm mx-auto h-[500px] cursor-grab active:cursor-grabbing"
+            className="relative w-full max-w-md md:max-w-xl lg:max-w-2xl mx-auto h-[480px] md:h-[560px] cursor-grab active:cursor-grabbing overflow-hidden overscroll-contain rounded-3xl select-none touch-pan-y"
+            role="region"
+            aria-label="Bộ sưu tập dạng thẻ có thể kéo và vuốt"
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === "ArrowLeft") handleSwipe("left");
+              if (e.key === "ArrowRight") handleSwipe("right");
+            }}
             onMouseDown={handleDragStart}
             onMouseMove={handleDragMove}
             onMouseUp={handleDragEnd}
@@ -1046,47 +1088,73 @@ const CardStackSection: React.FC = () => {
             onTouchEnd={handleDragEnd}
           >
             {cards.length > 0 ? (
-              cards
-                .slice(0, 3)
-                .reverse()
-                .map((card, index) => {
-                  const isTop = index === cards.length - 1;
-                  return (
+              displayedCards.map((card, index) => {
+                const isTop = index === 0;
+                return (
+                  <div
+                    key={card.id}
+                    className="absolute w-full h-full rounded-2xl bg-white transition-all duration-300 ease-in-out card-shadow ring-focus"
+                    style={
+                      isTop
+                        ? {
+                            ...topCardStyle(),
+                            zIndex: 10 - index,
+                          }
+                        : {
+                            transform: `scale(${
+                              1 - (index + 1) * 0.05
+                            }) translateY(${(index + 1) * -10}px)`,
+                            zIndex: 10 - index,
+                            opacity: 1 - (index + 1) * 0.1,
+                          }
+                    }
+                  >
+                    <img
+                      src={card.imageUrl}
+                      alt={card.title}
+                      className="w-full h-full object-cover rounded-2xl select-none"
+                      draggable={false}
+                      onError={handleImageError}
+                    />
                     <div
-                      key={card.id}
-                      className="absolute w-full h-full rounded-2xl shadow-2xl bg-white transition-all duration-300 ease-in-out"
-                      style={
-                        isTop
-                          ? {
-                              ...topCardStyle(),
-                              zIndex: 10 - index,
-                            }
-                          : {
-                              transform: `scale(${
-                                1 - (cards.length - 1 - index) * 0.05
-                              }) translateY(${
-                                (cards.length - 1 - index) * -10
-                              }px)`,
-                              zIndex: 10 - index,
-                              opacity: 1 - (cards.length - 1 - index) * 0.1,
-                            }
-                      }
-                    >
-                      <img
-                        src={card.imageUrl}
-                        alt={card.title}
-                        className="w-full h-full object-cover rounded-2xl"
-                        onError={handleImageError}
-                      />
-                      <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black/70 to-transparent rounded-b-2xl text-white">
-                        <h3 className="text-2xl font-bold font-serif">
-                          {card.title}
-                        </h3>
-                        <p className="text-sm opacity-80">{card.category}</p>
-                      </div>
+                      className="absolute inset-0 rounded-2xl ring-1 ring-black/10"
+                      aria-hidden
+                    />
+                    <div className="absolute bottom-0 left-0 right-0 p-6 md:p-7 bg-gradient-to-t from-black/70 via-black/30 to-transparent rounded-b-2xl text-white">
+                      <h3 className="text-xl md:text-2xl font-bold font-serif drop-shadow">
+                        {card.title}
+                      </h3>
+                      <p className="text-xs md:text-sm opacity-90">
+                        {card.category}
+                      </p>
                     </div>
-                  );
-                })
+                    {isTop && (
+                      <>
+                        <div
+                          className="pointer-events-none absolute top-4 left-4 px-3 py-1 rounded-md border-2 border-rose-500 bg-rose-600/10 text-rose-600 font-semibold uppercase text-xs swipe-badge"
+                          style={{
+                            opacity: nopeOpacity,
+                            transform: `rotate(-8deg)`,
+                          }}
+                          aria-hidden
+                        >
+                          Bỏ qua
+                        </div>
+                        <div
+                          className="pointer-events-none absolute top-4 right-4 px-3 py-1 rounded-md border-2 border-emerald-500 bg-emerald-600/10 text-emerald-600 font-semibold uppercase text-xs swipe-badge"
+                          style={{
+                            opacity: likeOpacity,
+                            transform: `rotate(8deg)`,
+                          }}
+                          aria-hidden
+                        >
+                          Yêu thích
+                        </div>
+                      </>
+                    )}
+                  </div>
+                );
+              })
             ) : (
               <div className="text-center text-slate-500">
                 Đã xem hết! Bộ sưu tập sẽ được làm mới.
@@ -1094,20 +1162,34 @@ const CardStackSection: React.FC = () => {
             )}
           </div>
 
-          <div className="flex justify-center items-center gap-8 mt-8">
+          <div className="flex flex-col sm:flex-row justify-center items-center gap-3 sm:gap-5 mt-8">
             <button
               onClick={() => handleSwipe("left")}
-              className="bg-white rounded-full p-4 shadow-lg text-rose-500 hover:bg-rose-100 transition-colors transform hover:scale-110"
+              aria-label="Bỏ qua"
+              className="inline-flex items-center gap-2 bg-white/90 backdrop-blur rounded-full px-5 py-3 shadow-lg text-rose-700 hover:bg-rose-100 active:scale-95 transition will-change-transform ring-focus"
             >
-              <XCircle size={32} />
+              <XCircle size={22} />
+              <span className="font-medium">Bỏ qua (←)</span>
             </button>
             <button
               onClick={() => handleSwipe("right")}
-              className="bg-white rounded-full p-4 shadow-lg text-green-500 hover:bg-green-100 transition-colors transform hover:scale-110"
+              aria-label="Yêu thích"
+              className="inline-flex items-center gap-2 bg-white/90 backdrop-blur rounded-full px-5 py-3 shadow-lg text-emerald-600 hover:bg-emerald-100 active:scale-95 transition will-change-transform ring-focus"
             >
-              <Heart size={32} />
+              <Heart size={22} />
+              <span className="font-medium">Yêu thích (→)</span>
             </button>
           </div>
+
+          {lastAction && (
+            <div
+              role="status"
+              aria-live="polite"
+              className="mt-4 text-center text-sm text-slate-500"
+            >
+              {lastAction}
+            </div>
+          )}
         </div>
       </FadeInWhenVisible>
     </section>
@@ -1514,7 +1596,7 @@ export default function App() {
         .animate-marquee { animation: marquee 40s linear infinite; }
         .animate-marquee2 { animation: marquee2 40s linear infinite; }
         .group:hover .animate-marquee, .group:hover .animate-marquee2 { animation-play-state: paused; }
-        
+
         /* Coverflow slider perspective */
         .coverflow-container { perspective: 1200px; }
 
@@ -1570,7 +1652,7 @@ export default function App() {
             animation-timing-function: linear;
             animation-fill-mode: forwards;
         }
-        
+
         /* Cursor Effect Animation */
         @keyframes cursor-sparkle {
             0% { transform: scale(1); opacity: 1; }

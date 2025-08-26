@@ -50,9 +50,17 @@ export default function ProductDetailPage() {
       setLoading(true);
       setError(null);
       try {
-        const res = await productApiRequest.getProduct(id);
-        if (res?.data) {
-          setItem(res.data);
+        // Route via Next public API to avoid CORS and handle env mapping/normalization
+        const res = await fetch(`/api/products/public/${id}`, {
+          cache: "no-store",
+        });
+        if (!res.ok) {
+          const t = await res.text();
+          throw new Error(t || `HTTP ${res.status}`);
+        }
+        const data = await res.json();
+        if (data?.data) {
+          setItem(data.data as Product);
         } else {
           setError("Không thể tải thông tin sản phẩm");
         }

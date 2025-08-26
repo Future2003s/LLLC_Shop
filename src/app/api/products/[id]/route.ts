@@ -14,7 +14,11 @@ export async function GET(
     const token = cookieStore.get("sessionToken")?.value;
     const authHeader = request.headers.get("authorization");
 
-    const backendUrl = `${envConfig.NEXT_PUBLIC_BACKEND_URL}/api/${envConfig.NEXT_PUBLIC_API_VERSION}/products/${id}`;
+    // Build backend URL without duplicating /api/v1
+    const base =
+      envConfig.NEXT_PUBLIC_API_END_POINT ||
+      `${envConfig.NEXT_PUBLIC_BACKEND_URL}/api/${envConfig.NEXT_PUBLIC_API_VERSION}`;
+    const backendUrl = `${base}/products/${id}`;
 
     console.log("Get product API called, backend URL:", backendUrl);
 
@@ -110,7 +114,11 @@ export async function PUT(
     // Use token from request.cookies first, then fallback to cookies() function
     const token = tokenFromRequest || tokenFromCookies;
 
-    const backendUrl = `${envConfig.NEXT_PUBLIC_BACKEND_URL}/api/${envConfig.NEXT_PUBLIC_API_VERSION}/products/${id}`;
+    // Build backend URL without duplicating /api/v1
+    const base =
+      envConfig.NEXT_PUBLIC_API_END_POINT ||
+      `${envConfig.NEXT_PUBLIC_BACKEND_URL}/api/${envConfig.NEXT_PUBLIC_API_VERSION}`;
+    const backendUrl = `${base}/products/${id}`;
 
     console.log("Update product API called, backend URL:", backendUrl);
 
@@ -242,7 +250,10 @@ export async function DELETE(
     // Use token from request.cookies first, then fallback to cookies() function
     const token = tokenFromRequest || tokenFromCookies;
 
-    const backendUrl = `${envConfig.NEXT_PUBLIC_BACKEND_URL}/api/${envConfig.NEXT_PUBLIC_API_VERSION}/products/${id}`;
+    const base =
+      envConfig.NEXT_PUBLIC_API_END_POINT ||
+      `${envConfig.NEXT_PUBLIC_BACKEND_URL}/api/${envConfig.NEXT_PUBLIC_API_VERSION}`;
+    const backendUrl = `${base}/products/${id}`;
 
     console.log("Delete product API called, backend URL:", backendUrl);
 

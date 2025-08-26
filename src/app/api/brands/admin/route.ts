@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server";
 import { envConfig } from "@/config";
+import { cookies } from "next/headers";
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
@@ -23,11 +24,17 @@ export async function GET(request: NextRequest) {
   console.log("Admin brands API called, backend URL:", backendUrl);
 
   try {
+    // Attach Authorization if present (admin list may require auth)
+    const cookieStore = await cookies();
+    const token = cookieStore.get("sessionToken")?.value || "";
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
+    if (token) headers.Authorization = `Bearer ${token}`;
+
     const res = await fetch(backendUrl, {
       cache: "no-store",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers,
     });
 
     if (!res.ok) {
@@ -78,13 +85,20 @@ export async function POST(request: NextRequest) {
 
     const backendUrl = `${envConfig.NEXT_PUBLIC_BACKEND_URL}/api/${envConfig.NEXT_PUBLIC_API_VERSION}/brands`;
 
+    // Include auth if available (brands creation often requires admin)
+    const cookieStore = await cookies();
+    const token = cookieStore.get("sessionToken")?.value || "";
+
     console.log("Create brand API called, backend URL:", backendUrl);
+
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
+    if (token) headers.Authorization = `Bearer ${token}`;
 
     const res = await fetch(backendUrl, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers,
       body: JSON.stringify(body),
     });
 

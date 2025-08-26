@@ -6,8 +6,8 @@ export async function GET(request: NextRequest) {
   const q = searchParams.get("q") ?? "";
   const categoryId = searchParams.get("categoryId");
   const brandId = searchParams.get("brandId");
-  const page = searchParams.get("page") ?? "0";
-  const size = searchParams.get("size") ?? "20";
+  const page = searchParams.get("page") ?? "1";
+  const size = searchParams.get("size") ?? "24";
 
   console.log("Products public API called with params:", {
     q,
@@ -19,28 +19,30 @@ export async function GET(request: NextRequest) {
 
   // Map to new backend endpoints: /api/v1/products, /api/v1/products/search, /api/v1/products/category/:categoryId
   let backendUrl: string;
-  const base = `${envConfig.NEXT_PUBLIC_BACKEND_URL}/api/${envConfig.NEXT_PUBLIC_API_VERSION}`;
+  const base =
+    envConfig.NEXT_PUBLIC_API_END_POINT ||
+    `${envConfig.NEXT_PUBLIC_BACKEND_URL}/api/${envConfig.NEXT_PUBLIC_API_VERSION}`;
+
+  const withCommonParams = (p: URLSearchParams) => {
+    p.set("page", page);
+    p.set("limit", size);
+    p.set("status", "active");
+    p.set("isVisible", "true");
+    return p;
+  };
 
   if (categoryId) {
-    const params = new URLSearchParams();
-    params.set("page", page);
-    params.set("size", size);
+    const params = withCommonParams(new URLSearchParams());
     backendUrl = `${base}/products/category/${categoryId}?${params.toString()}`;
   } else if (brandId) {
-    const params = new URLSearchParams();
-    params.set("page", page);
-    params.set("size", size);
+    const params = withCommonParams(new URLSearchParams());
     backendUrl = `${base}/products/brand/${brandId}?${params.toString()}`;
   } else if (q) {
-    const params = new URLSearchParams();
+    const params = withCommonParams(new URLSearchParams());
     params.set("q", q);
-    params.set("page", page);
-    params.set("size", size);
     backendUrl = `${base}/products/search?${params.toString()}`;
   } else {
-    const params = new URLSearchParams();
-    params.set("page", page);
-    params.set("size", size);
+    const params = withCommonParams(new URLSearchParams());
     backendUrl = `${base}/products?${params.toString()}`;
   }
 
@@ -108,8 +110,8 @@ export async function GET(request: NextRequest) {
         data: list,
         pagination: raw?.data
           ? {
-              page: raw.data.page || 0,
-              size: raw.data.size || 20,
+              page: raw.data.page || 1,
+              size: raw.data.size || 24,
               totalElements: raw.data.totalElements || list.length,
               totalPages: raw.data.totalPages || 1,
             }
@@ -117,7 +119,11 @@ export async function GET(request: NextRequest) {
       }),
       {
         status: 200,
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          // Cache public products for 60s at the edge/CDN; allow stale while revalidate
+          "Cache-Control": "public, s-maxage=60, stale-while-revalidate=120",
+        },
       }
     );
   } catch (e) {

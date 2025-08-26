@@ -54,6 +54,7 @@ class HttpClient {
   private responseInterceptors: ResponseInterceptor[] = [];
 
   constructor(baseUrl?: string) {
+    // Base URL should NOT include API version - it will be added in buildFullUrl
     this.baseUrl = baseUrl || envConfig.NEXT_PUBLIC_API_END_POINT;
   }
 
@@ -231,9 +232,40 @@ class HttpClient {
    */
   private buildFullUrl(url: string, config: RequestConfig): string {
     const baseUrl = config.baseUrl || this.baseUrl;
-    return url.startsWith("http")
-      ? url
-      : `${baseUrl}${url.startsWith("/") ? url : `/${url}`}`;
+
+    // If URL is already a full HTTP URL, return as is
+    if (url.startsWith("http")) {
+      return url;
+    }
+
+    // Check if baseUrl already contains API version to avoid duplication
+    const baseUrlHasApiVersion = baseUrl.includes(
+      `/api/${envConfig.NEXT_PUBLIC_API_VERSION}`
+    );
+
+    // If URL starts with /api/, remove the /api part to avoid duplication
+    if (url.startsWith("/api/")) {
+      const pathWithoutApi = url.replace(/^\/api\/v?\d*\/?/, "/");
+
+      if (baseUrlHasApiVersion) {
+        // Base URL already has API version, just append the path
+        return `${baseUrl}${pathWithoutApi}`;
+      } else {
+        // Base URL doesn't have API version, add it
+        return `${baseUrl}/api/${envConfig.NEXT_PUBLIC_API_VERSION}${pathWithoutApi}`;
+      }
+    }
+
+    // For all other relative paths
+    const apiPath = url.startsWith("/") ? url : `/${url}`;
+
+    if (baseUrlHasApiVersion) {
+      // Base URL already has API version, just append the path
+      return `${baseUrl}${apiPath}`;
+    } else {
+      // Base URL doesn't have API version, add it
+      return `${baseUrl}/api/${envConfig.NEXT_PUBLIC_API_VERSION}${apiPath}`;
+    }
   }
 
   /**

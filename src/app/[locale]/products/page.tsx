@@ -3,8 +3,10 @@ import { useEffect, useMemo, useState, useCallback } from "react";
 import { productApiRequest, Product } from "@/apiRequests/products";
 import { metaApi } from "@/apiRequests/meta";
 import Link from "next/link";
+import Image from "next/image";
+import dynamic from "next/dynamic";
 import { useI18n } from "@/i18n/I18nProvider";
-import { Search, Filter, Grid3X3, List, SortAsc, SortDesc } from "lucide-react";
+import { Search, Filter, Grid3X3, List } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -17,7 +19,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { Skeleton } from "@/components/ui/skeleton";
 
 const formatCurrency = (amount: number) =>
   new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(
@@ -64,9 +65,23 @@ export default function ShopPage() {
         ]);
 
         const normalizeArray = (res: any) => {
-          if (Array.isArray(res)) return res;
-          if (Array.isArray(res?.data)) return res.data;
-          if (Array.isArray(res?.data?.items)) return res.data.items;
+          try {
+            if (!res) return [];
+            if (Array.isArray(res)) return res;
+            if (Array.isArray(res?.data)) return res.data;
+            if (Array.isArray(res?.items)) return res.items;
+            if (Array.isArray(res?.data?.items)) return res.data.items;
+            if (Array.isArray(res?.result)) return res.result;
+            if (res?.data && typeof res.data === "object") {
+              const arrayKey = Object.keys(res.data).find((k) =>
+                Array.isArray((res.data as any)[k])
+              );
+              if (arrayKey) return (res.data as any)[arrayKey];
+            }
+          } catch {}
+          console.log("🧭 Categories API raw:", categoriesRes);
+          console.log("🧭 Brands API raw:", brandsRes);
+
           return [];
         };
 
@@ -98,45 +113,31 @@ export default function ShopPage() {
 
         console.log("🔍 Loading products with params:", params);
 
-        // Fetch all pages up to backend max page size
-        const PAGE_LIMIT = 100; // backend maxLimit is 100
-        const firstRes = await productApiRequest.getProducts({
-          ...params,
-          page: 1,
-          limit: PAGE_LIMIT,
-        });
+        // Request a single page from our public API proxy
+        const PAGE_LIMIT = 24;
+        const paramsPublic = new URLSearchParams();
+        if (params.search) paramsPublic.set("q", params.search);
+        if (params.category) paramsPublic.set("categoryId", params.category);
+        if (params.brand) paramsPublic.set("brandId", params.brand);
+        paramsPublic.set("page", "1");
+        paramsPublic.set("size", String(PAGE_LIMIT));
 
-        const aggregate: Product[] = Array.isArray(firstRes?.data)
-          ? firstRes.data
-          : Array.isArray(firstRes)
-          ? (firstRes as unknown as Product[])
-          : [];
-
-        const totalPages = (firstRes as any)?.pagination?.pages || 1;
-
-        if (totalPages > 1) {
-          const requests = [] as Promise<any>[];
-          for (let p = 2; p <= totalPages; p++) {
-            requests.push(
-              productApiRequest.getProducts({
-                ...params,
-                page: p,
-                limit: PAGE_LIMIT,
-              })
-            );
+        const res = await fetch(
+          `/api/products/public?${paramsPublic.toString()}`,
+          {
+            cache: "no-store",
           }
-          const rest = await Promise.all(requests);
-          for (const r of rest) {
-            if (r?.data && Array.isArray(r.data)) {
-              aggregate.push(...r.data);
-            } else if (Array.isArray(r)) {
-              aggregate.push(...(r as unknown as Product[]));
-            }
-          }
+        );
+
+        if (!res.ok) {
+          throw new Error(`Public products API failed: ${res.status}`);
         }
 
-        console.log("📦 Final products array (all pages):", aggregate);
-        setItems(aggregate);
+        const data = await res.json();
+        const list: Product[] = Array.isArray(data?.data) ? data.data : [];
+
+        console.log("📦 Public products page received:", list.length);
+        setItems(list);
       } catch (error) {
         console.error("Failed to load products:", error);
         setItems([]);
@@ -243,11 +244,25 @@ export default function ShopPage() {
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="all">Tất cả danh mục</SelectItem>
-                        {categories.map((cat) => (
-                          <SelectItem key={cat.id} value={cat.id.toString()}>
-                            {cat.categoryName}
-                          </SelectItem>
-                        ))}
+                        {categories.map((cat: any) => {
+                          const id = (
+                            cat.id ??
+                            cat._id ??
+                            cat.value
+                          )?.toString();
+                          const label =
+                            cat.name ??
+                            cat.categoryName ??
+                            cat.title ??
+                            cat.label ??
+                            id;
+                          if (!id) return null;
+                          return (
+                            <SelectItem key={id} value={id}>
+                              {label}
+                            </SelectItem>
+                          );
+                        })}
                       </SelectContent>
                     </Select>
                   </div>
@@ -266,11 +281,21 @@ export default function ShopPage() {
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="all">Tất cả thương hiệu</SelectItem>
-                        {brands.map((brand) => (
-                          <SelectItem key={brand.id} value={brand.id}>
-                            {brand.name}
-                          </SelectItem>
-                        ))}
+                        {brands.map((brand: any) => {
+                          const id = (
+                            brand.id ??
+                            brand._id ??
+                            brand.value
+                          )?.toString();
+                          const label =
+                            brand.name ?? brand.title ?? brand.label ?? id;
+                          if (!id) return null;
+                          return (
+                            <SelectItem key={id} value={id}>
+                              {label}
+                            </SelectItem>
+                          );
+                        })}
                       </SelectContent>
                     </Select>
                   </div>

@@ -13,9 +13,22 @@ import {
   Bell,
   Globe,
 } from "lucide-react";
+import {
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  LabelList,
+} from "recharts";
 import { useSearchParams, useRouter } from "next/navigation";
 import { OrdersView } from "./components/OrdersView";
 import { useOrders } from "./hooks/useOrders";
+
+type RevenuePoint = { date: string; revenue: number };
 
 export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
@@ -31,6 +44,127 @@ export default function DashboardPage() {
     goToPage,
     changePageSize,
   } = useOrders();
+  const [summary, setSummary] = useState<any>(null);
+  const [revenueSeries, setRevenueSeries] = useState<RevenuePoint[]>([]);
+  type RangeKey = "7d" | "30d" | "month";
+  type ChartPoint = { date: string; revenue?: number; orders?: number };
+
+  const [ordersSeries, setOrdersSeries] = useState<RevenuePoint[]>([]);
+  const [chartData, setChartData] = useState<ChartPoint[]>([]);
+  const [range, setRange] = useState<RangeKey>("30d");
+  const [chartColor, setChartColor] = useState<string>("#16a34a"); // green-600
+  const [showLabels, setShowLabels] = useState<boolean>(false);
+  const [stacked, setStacked] = useState<boolean>(false);
+
+  const [revenueLoading, setRevenueLoading] = useState<boolean>(true);
+
+  const formatCurrency = (v: any) =>
+    typeof v === "number"
+      ? new Intl.NumberFormat("vi-VN", {
+          style: "currency",
+          currency: "VND",
+        }).format(v)
+      : v ?? "₫0";
+
+  const extractRevenueSeries = (s: any): RevenuePoint[] => {
+    if (!s) return [];
+    const candidates = [
+      s?.revenueTrend,
+      s?.dailyRevenue,
+      s?.revenueByDay,
+      s?.chart?.revenue,
+      s?.last7DaysRevenue,
+    ].find((arr) => Array.isArray(arr)) as any[] | undefined;
+
+    if (Array.isArray(candidates)) {
+      return candidates
+        .map((it: any) => {
+          const date = it.date || it.day || it.label || it.name;
+          const value = it.value ?? it.revenue ?? it.amount ?? it.total ?? 0;
+          return {
+            date: String(date),
+            revenue: Number(value) || 0,
+          } as RevenuePoint;
+        })
+        .filter((d: RevenuePoint) => !!d.date);
+    }
+    return [];
+  };
+
+  const extractOrdersSeries = (s: any): RevenuePoint[] => {
+    if (!s) return [];
+    const candidates = [
+      s?.ordersTrend,
+      s?.dailyOrders,
+      s?.ordersByDay,
+      s?.chart?.orders,
+      s?.last7DaysOrders,
+    ].find((arr) => Array.isArray(arr)) as any[] | undefined;
+
+    if (Array.isArray(candidates)) {
+      return candidates
+        .map((it: any) => {
+          const date = it.date || it.day || it.label || it.name;
+          const value = it.value ?? it.orders ?? it.count ?? it.total ?? 0;
+          return {
+            date: String(date),
+            revenue: Number(value) || 0,
+          } as RevenuePoint;
+        })
+        .filter((d: RevenuePoint) => !!d.date);
+    }
+    return [];
+  };
+
+  const buildChartData = (
+    rev: RevenuePoint[],
+    ord: RevenuePoint[]
+  ): ChartPoint[] => {
+    const map = new Map<string, ChartPoint>();
+    for (const r of rev) {
+      map.set(r.date, { date: r.date, revenue: r.revenue });
+    }
+    for (const o of ord) {
+      const existing = map.get(o.date) || { date: o.date };
+      map.set(o.date, { ...existing, orders: o.revenue });
+    }
+    return Array.from(map.values());
+  };
+
+  // Load chart data when range changes
+  useEffect(() => {
+    let cancelled = false;
+    const load = async () => {
+      try {
+        setRevenueLoading(true);
+        const url = new URL(`/api/analytics/summary`, window.location.origin);
+        url.searchParams.set("range", range);
+        const res = await fetch(url.toString(), { cache: "no-store" });
+        const text = await res.text();
+        const json = text ? JSON.parse(text) : null;
+        const s = json?.data || json;
+        if (cancelled) return;
+        setSummary(s);
+        const rev = extractRevenueSeries(s);
+        const ord = extractOrdersSeries(s);
+        setRevenueSeries(rev);
+        setOrdersSeries(ord);
+        setChartData(buildChartData(rev, ord));
+      } catch (e) {
+        if (cancelled) return;
+        setSummary(null);
+        setRevenueSeries([]);
+        setOrdersSeries([]);
+        setChartData([]);
+      } finally {
+        if (!cancelled) setRevenueLoading(false);
+      }
+    };
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, [range]);
 
   useEffect(() => {
     // Simulate loading dashboard data
@@ -124,7 +258,9 @@ export default function DashboardPage() {
               <TrendingUp className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">₫12,345,678</div>
+              <div className="text-2xl font-bold">
+                {formatCurrency(summary?.monthRevenue)}
+              </div>
               <p className="text-xs text-muted-foreground">
                 +15.3% so với tháng trước
               </p>
@@ -155,6 +291,130 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
         </div>
+
+        <div className="flex flex-wrap items-center gap-3 px-2 pb-2">
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground">Phạm vi:</span>
+            <select
+              className="border rounded px-2 py-1 text-sm"
+              value={range}
+              onChange={(e) => setRange(e.target.value as RangeKey)}
+            >
+              <option value="7d">7 ngày</option>
+              <option value="30d">30 ngày</option>
+              <option value="month">Tháng này</option>
+            </select>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground">Màu cột:</span>
+            <input
+              type="color"
+              value={chartColor}
+              onChange={(e) => setChartColor(e.target.value)}
+            />
+          </div>
+          <label className="flex items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              checked={showLabels}
+              onChange={(e) => setShowLabels(e.target.checked)}
+            />
+            Hiển thị nhãn
+          </label>
+          <label className="flex items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              checked={stacked}
+              onChange={(e) => setStacked(e.target.checked)}
+            />
+            Stacked bar
+          </label>
+        </div>
+
+        {/* Revenue Chart */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <TrendingUp className="h-5 w-5" /> Tổng doanh thu (xu hướng)
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {revenueLoading ? (
+              <div className="h-64 flex items-center justify-center">
+                <Loader isLoading={true} message="Đang tải biểu đồ..." />
+              </div>
+            ) : revenueSeries.length > 0 ? (
+              <div className="w-full h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    data={revenueSeries}
+                    margin={{ top: 10, right: 20, left: 0, bottom: 0 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="date" />
+                    <YAxis
+                      tickFormatter={(v) =>
+                        new Intl.NumberFormat("vi-VN").format(v as any)
+                      }
+                    />
+                    <Tooltip
+                      formatter={(value: any) => [
+                        new Intl.NumberFormat("vi-VN", {
+                          style: stacked ? "decimal" : "currency",
+                          currency: "VND",
+                        }).format(Number(value) || 0),
+                        "Doanh thu",
+                      ]}
+                    />
+                    <Legend />
+                    <Bar
+                      dataKey="revenue"
+                      name="Doanh thu"
+                      fill={chartColor}
+                      stackId={stacked ? "a" : undefined}
+                    >
+                      {showLabels && (
+                        <LabelList
+                          dataKey="revenue"
+                          position="top"
+                          formatter={(v: any) =>
+                            new Intl.NumberFormat("vi-VN").format(
+                              Number(v) || 0
+                            )
+                          }
+                        />
+                      )}
+                    </Bar>
+                    {stacked && (
+                      <Bar
+                        dataKey="orders"
+                        name="Đơn hàng"
+                        fill="#3b82f6"
+                        stackId="a"
+                      >
+                        {showLabels && (
+                          <LabelList
+                            dataKey="orders"
+                            position="top"
+                            formatter={(v: any) =>
+                              new Intl.NumberFormat("vi-VN").format(
+                                Number(v) || 0
+                              )
+                            }
+                          />
+                        )}
+                      </Bar>
+                    )}
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            ) : (
+              <div className="text-sm text-muted-foreground">
+                Chưa có dữ liệu doanh thu để hiển thị
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
         {/* System Overview */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

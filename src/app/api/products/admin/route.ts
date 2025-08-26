@@ -6,8 +6,8 @@ export async function GET(request: NextRequest) {
   const q = searchParams.get("q");
   const categoryId = searchParams.get("categoryId");
   const status = searchParams.get("status");
-  const page = searchParams.get("page") || "0";
-  const size = searchParams.get("size") || "20";
+  const page = searchParams.get("page") || "1";
+  const size = searchParams.get("size") || "12";
 
   const params = new URLSearchParams();
   if (q) params.set("search", q);
@@ -15,10 +15,13 @@ export async function GET(request: NextRequest) {
   if (status) params.set("status", status);
   params.set("page", page);
   params.set("limit", size);
+  params.set("status", status || "active");
+  params.set("isVisible", "true");
 
-  const backendUrl = `${envConfig.NEXT_PUBLIC_BACKEND_URL}/api/${
-    envConfig.NEXT_PUBLIC_API_VERSION
-  }/products?${params.toString()}`;
+  const base =
+    envConfig.NEXT_PUBLIC_API_END_POINT ||
+    `${envConfig.NEXT_PUBLIC_BACKEND_URL}/api/${envConfig.NEXT_PUBLIC_API_VERSION}`;
+  const backendUrl = `${base}/products?${params.toString()}`;
 
   console.log("Admin products API called, backend URL:", backendUrl);
 
@@ -51,14 +54,27 @@ export async function GET(request: NextRequest) {
     const data = await res.json();
     console.log("Admin products API response:", data);
 
-    // Transform backend response to match frontend expectations
+    // Normalize pagination from backend
+    const rawList = Array.isArray(data?.data)
+      ? data.data
+      : data?.data?.data || [];
+    const total =
+      data?.pagination?.total ||
+      data?.pagination?.totalElements ||
+      data?.total ||
+      0;
+    const totalPages =
+      data?.pagination?.totalPages ||
+      (total && Math.ceil(total / Number(size))) ||
+      0;
+
     const transformedData = {
-      data: data.data || [],
-      pagination: data.pagination || {
-        page: parseInt(page),
-        size: parseInt(size),
-        totalElements: 0,
-        totalPages: 0,
+      data: rawList,
+      pagination: {
+        page: Number(page),
+        size: Number(size),
+        totalElements: total,
+        totalPages,
       },
     };
 

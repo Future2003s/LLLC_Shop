@@ -1,1 +1,1 @@
-export { default } from "../../(admin)/admin-products/page";
+export { default } from "../../(admin)/admin-products/PageClient";

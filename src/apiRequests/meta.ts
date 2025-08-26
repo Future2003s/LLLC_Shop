@@ -1,10 +1,12 @@
 import { http } from "@/lib/http";
 
 export const metaApi = {
-  categories: () => http.get("/categories"),
-  categoryTree: () => http.get("/categories/tree"),
-  brands: () => http.get("/brands"),
-  popularBrands: () => http.get("/brands/popular"),
+  // Use frontend API routes for public meta to avoid CORS/auth issues in browser
+  categories: () => http.get("/api/meta/categories", { baseUrl: "" }),
+  categoryTree: () => http.get("/api/meta/categories/tree", { baseUrl: "" }),
+  brands: () => http.get("/api/meta/brands", { baseUrl: "" }),
+  popularBrands: () => http.get("/api/meta/brands/popular", { baseUrl: "" }),
+  // Keep admin create endpoints going to backend with explicit Authorization header
   createCategory: (data: any, token: string) =>
     http.post("/categories", data, {
       headers: { Authorization: `Bearer ${token}` },

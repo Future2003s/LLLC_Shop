@@ -270,7 +270,7 @@ function LoginForm() {
       {/* Success Loader */}
       <Loader
         isLoading={showSuccessLoader}
-        message="Login Successfully"
+        message=""
         size="md"
         overlay={true}
       />

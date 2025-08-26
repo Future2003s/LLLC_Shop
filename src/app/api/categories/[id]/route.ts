@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server";
 import { envConfig } from "@/config";
+import { cookies } from "next/headers";
 
 export async function PUT(
   request: NextRequest,
@@ -14,11 +15,16 @@ export async function PUT(
 
     console.log("Update category API called, backend URL:", backendUrl);
 
+    const cookieStore = await cookies();
+    const token = cookieStore.get("sessionToken")?.value || "";
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
+    if (token) headers.Authorization = `Bearer ${token}`;
+
     const res = await fetch(backendUrl, {
       method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers,
       body: JSON.stringify(body),
     });
 
@@ -75,11 +81,14 @@ export async function DELETE(
 
     console.log("Delete category API called, backend URL:", backendUrl);
 
+    const cookieStore = await cookies();
+    const token = cookieStore.get("sessionToken")?.value || "";
+    const headers: Record<string, string> = {};
+    if (token) headers.Authorization = `Bearer ${token}`;
+
     const res = await fetch(backendUrl, {
       method: "DELETE",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers,
     });
 
     if (!res.ok) {

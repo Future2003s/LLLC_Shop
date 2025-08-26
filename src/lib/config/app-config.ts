@@ -1,14 +1,9 @@
-/**
- * Enterprise Application Configuration
- * Centralized configuration management with environment-specific settings
- */
-
 import { z } from "zod";
 
 // Configuration schema for validation
 const configSchema = z.object({
   app: z.object({
-    name: z.string().default("E-commerce Platform"),
+    name: z.string().default("LALA-LYCHEEE"),
     version: z.string().default("1.0.0"),
     environment: z
       .enum(["development", "staging", "production"])
@@ -36,7 +31,6 @@ const configSchema = z.object({
     maxMemorySize: z.number().positive().default(1000),
     enableLocalStorage: z.boolean().default(true),
     enableRedis: z.boolean().default(false),
-    keyPrefix: z.string().default("ecommerce"),
   }),
   security: z.object({
     enableCsrf: z.boolean().default(true),

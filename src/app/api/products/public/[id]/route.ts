@@ -7,7 +7,10 @@ export async function GET(_request: NextRequest, ctx: any) {
   console.log("Product detail API called for ID:", id);
 
   try {
-    const backendUrl = `${envConfig.NEXT_PUBLIC_API_END_POINT}/products/${id}`;
+    const base =
+      envConfig.NEXT_PUBLIC_API_END_POINT ||
+      `${envConfig.NEXT_PUBLIC_BACKEND_URL}/api/${envConfig.NEXT_PUBLIC_API_VERSION}`;
+    const backendUrl = `${base}/products/${id}`;
     console.log("Backend URL:", backendUrl);
 
     const res = await fetch(backendUrl, { cache: "no-store" });
@@ -15,8 +18,12 @@ export async function GET(_request: NextRequest, ctx: any) {
 
     if (!res.ok) {
       console.error("Product detail API error - status:", res.status);
+      const errorText = await res.text().catch(() => "");
       return new Response(
-        JSON.stringify({ data: null, message: "Product not found" }),
+        JSON.stringify({
+          data: null,
+          message: errorText || "Product not found",
+        }),
         {
           status: res.status,
           headers: { "Content-Type": "application/json" },
@@ -24,7 +31,7 @@ export async function GET(_request: NextRequest, ctx: any) {
       );
     }
 
-    let raw;
+    let raw: any = null;
     try {
       const text = await res.text();
       raw = text ? JSON.parse(text) : null;
@@ -34,9 +41,24 @@ export async function GET(_request: NextRequest, ctx: any) {
     }
     console.log("Product detail API raw response:", raw);
 
-    // Backend returns ResponseData<ProductDetailResponse>
-    // So raw.data should be the product detail object
-    const productData = raw?.data || null;
+    // Normalize product data: support raw object or wrapped formats
+    let productData: any = null;
+    if (raw && typeof raw === "object") {
+      if ("success" in raw && raw.success && raw.data) {
+        productData = raw.data;
+      } else if (
+        raw.data &&
+        typeof raw.data === "object" &&
+        !Array.isArray(raw.data)
+      ) {
+        productData = raw.data;
+      } else if (raw.product && typeof raw.product === "object") {
+        productData = raw.product;
+      } else if (raw._id || raw.id || raw.name) {
+        productData = raw; // raw product object
+      }
+    }
+
     console.log("Product detail normalized data:", productData);
 
     return new Response(JSON.stringify({ data: productData }), {

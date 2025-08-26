@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -38,6 +38,87 @@ export default function AdminShell({
 }) {
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [drawerVisible, setDrawerVisible] = useState(false);
+
+  const openDrawer = () => {
+    setSidebarOpen(true);
+    requestAnimationFrame(() => setDrawerVisible(true));
+  };
+  const closeDrawer = () => {
+    setDrawerVisible(false);
+    setTimeout(() => setSidebarOpen(false), 200);
+  };
+  // Draggable menu button position (persisted per path)
+  const storageKey = (p: string) => `admin_fab_pos:${p || "root"}`;
+  // Return a constant position for the initial server and client render to avoid hydration mismatch
+  const initialPos = () =>
+    ({ left: 12, top: 200 } as { left: number; top: number });
+  const [fabPos, setFabPos] = useState<{ left: number; top: number }>(
+    initialPos
+  );
+  const dragRef = useRef<HTMLDivElement>(null);
+  // Click vs drag threshold handling for FAB
+  const DRAG_THRESHOLD = 10; // px
+  const dragInfoRef = useRef<{
+    startX: number;
+    startY: number;
+    dragging: boolean;
+  }>({ startX: 0, startY: 0, dragging: false });
+
+  const pointerRef = useRef<{ isDown: boolean; pointerId: number }>({
+    isDown: false,
+    pointerId: -1,
+  });
+
+  useEffect(() => {
+    // Clamp position when viewport changes
+    const clamp = () => {
+      setFabPos((pos) => {
+        const pad = 8;
+        const w = typeof window !== "undefined" ? window.innerWidth : 390;
+        const h = typeof window !== "undefined" ? window.innerHeight : 844;
+        const size = 56; // button approx 56px
+        const left = Math.min(
+          Math.max(pos.left, pad),
+          Math.max(pad, w - size - pad)
+        );
+        const top = Math.min(
+          Math.max(pos.top, pad),
+          Math.max(pad, h - size - pad)
+        );
+        return { left, top };
+      });
+    };
+    clamp();
+    window.addEventListener("resize", clamp);
+    return () => window.removeEventListener("resize", clamp);
+  }, []);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(storageKey(pathname || "/"), JSON.stringify(fabPos));
+    } catch {}
+  }, [fabPos, pathname]);
+
+  const onDrag = (e: React.PointerEvent) => {
+    const el = dragRef.current;
+    if (!el) return;
+    const rect = el.parentElement?.getBoundingClientRect();
+    const pad = 8;
+    const size = 56;
+    const w = rect?.width || window.innerWidth;
+    const h = rect?.height || window.innerHeight;
+    const left = Math.min(
+      Math.max(e.clientX - size / 2, pad),
+      Math.max(pad, w - size - pad)
+    );
+    const top = Math.min(
+      Math.max(e.clientY - size / 2, pad),
+      Math.max(pad, h - size - pad)
+    );
+    setFabPos({ left, top });
+  };
+
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
 
@@ -57,9 +138,9 @@ export default function AdminShell({
   return (
     <SidebarProvider>
       <div className="flex min-h-screen bg-gray-100 text-gray-800">
-        {/* Desktop sidebar */}
+        {/* Desktop sidebar (hidden on mobile, use drawer below) */}
         <aside
-          className={`flex flex-col ${
+          className={`hidden lg:flex flex-col ${
             sidebarCollapsed ? "w-20" : "w-64"
           } bg-white shadow-lg transition-all duration-300 overflow-hidden min-h-screen z-30`}
         >
@@ -103,12 +184,20 @@ export default function AdminShell({
 
         {/* Mobile drawer */}
         {sidebarOpen && (
-          <div className="fixed inset-0 z-50">
+          <div
+            className={`fixed inset-0 z-50 ${
+              drawerVisible ? "opacity-100" : "opacity-0"
+            } transition-opacity duration-200`}
+          >
             <div
               className="absolute inset-0 bg-black/50"
-              onClick={() => setSidebarOpen(false)}
+              onClick={closeDrawer}
             />
-            <aside className="relative z-10 w-64 h-full bg-white shadow-lg flex flex-col">
+            <aside
+              className={`relative z-10 w-64 h-full bg-white shadow-lg flex flex-col transform ${
+                drawerVisible ? "translate-x-0" : "-translate-x-full"
+              } transition-transform duration-200 will-change-transform`}
+            >
               <div className="h-16 border-b flex items-center px-4 flex-shrink-0">
                 <div className="h-9 w-9 rounded-md bg-pink-100 text-pink-600 flex items-center justify-center font-bold">
                   {brand.short}
@@ -122,7 +211,7 @@ export default function AdminShell({
                     <Link
                       key={item.id}
                       href={item.href}
-                      onClick={() => setSidebarOpen(false)}
+                      onClick={closeDrawer}
                       className={`block px-4 py-2.5 hover:bg-rose-50 transition-colors cursor-pointer ${
                         isActive
                           ? "text-rose-600 bg-rose-50 font-semibold"
@@ -138,15 +227,86 @@ export default function AdminShell({
           </div>
         )}
 
+        {/* Mobile quick-launch draggable menu button */}
+        <div
+          ref={dragRef}
+          className="lg:hidden fixed z-40 touch-none active:scale-[0.98]"
+          style={{ left: fabPos.left, top: fabPos.top }}
+          onPointerDown={(e) => {
+            pointerRef.current.isDown = true;
+            pointerRef.current.pointerId = e.pointerId;
+            (e.currentTarget as any).setPointerCapture(e.pointerId);
+            const info = dragInfoRef.current;
+            info.startX = e.clientX;
+            info.startY = e.clientY;
+            info.dragging = false;
+            e.currentTarget.classList.add("ring-2", "ring-blue-400");
+          }}
+          onPointerUp={(e) => {
+            pointerRef.current.isDown = false;
+            pointerRef.current.pointerId = -1;
+            try {
+              e.currentTarget.classList.remove("ring-2", "ring-blue-400");
+            } catch {}
+            const info = dragInfoRef.current;
+            if (!info.dragging) {
+              openDrawer();
+            }
+          }}
+          onPointerCancel={(e) => {
+            pointerRef.current.isDown = false;
+            pointerRef.current.pointerId = -1;
+            try {
+              e.currentTarget.classList.remove("ring-2", "ring-blue-400");
+            } catch {}
+            dragInfoRef.current.dragging = false;
+          }}
+          onPointerMove={(e) => {
+            // Ignore move if pointer isn't down or belongs to a different pointer (multi-touch safety)
+            if (
+              !pointerRef.current.isDown ||
+              pointerRef.current.pointerId !== e.pointerId
+            )
+              return;
+            const info = dragInfoRef.current;
+            const dx = Math.abs(e.clientX - info.startX);
+            const dy = Math.abs(e.clientY - info.startY);
+            const dist = Math.hypot(dx, dy);
+            if (!info.dragging && dist < DRAG_THRESHOLD) return;
+            info.dragging = true;
+            const el = dragRef.current;
+            if (!el) return;
+            const rect = el.parentElement?.getBoundingClientRect();
+            const pad = 8;
+            const size = 56;
+            const w = rect?.width || window.innerWidth;
+            const h = rect?.height || window.innerHeight;
+            const left = Math.min(
+              Math.max(e.clientX - size / 2, pad),
+              Math.max(pad, w - size - pad)
+            );
+            const top = Math.min(
+              Math.max(e.clientY - size / 2, pad),
+              Math.max(pad, h - size - pad)
+            );
+            setFabPos({ left, top });
+          }}
+        >
+          <Button
+            variant="default"
+            size="icon"
+            className="h-14 w-14 rounded-full shadow-lg active:scale-[0.98]"
+            aria-label="Mở menu"
+          >
+            <Menu size={22} />
+          </Button>
+        </div>
+
         {/* Main area */}
         <div className="flex-1 flex flex-col overflow-hidden">
-          <header className="bg-white shadow-sm h-16 flex items-center justify-between px-4 lg:px-8">
+          <header className="bg-white shadow-sm h-16 flex items-center justify-between px-3 sm:px-4 lg:px-8">
             <div className="flex items-center gap-3">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setSidebarOpen(true)}
-              >
+              <Button variant="ghost" size="icon" onClick={openDrawer}>
                 <Menu size={20} />
               </Button>
               <Button
